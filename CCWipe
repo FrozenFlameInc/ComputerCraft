@@ -1,0 +1,97 @@
+local tArgs = {...}
+local text = "HD's pc wiper v3.0"
+local maxX, maxY = term.getSize()
+local Z = shell.getRunningProgram()
+
+if tArgs[1] == "-help" then
+ print("This is HD's computercraft wiper")
+ print("This program will wipe everything it can")
+ print("unless it is an argument or the program itself")
+ print("")
+ print('Example: "'..Z..' test"')
+ print("This will wipe everything but test and "..Z)
+ error()
+end
+
+if term.isColour() then
+ term.setTextColour(colors.red)
+end
+
+term.clear()
+term.setCursorPos(1,1)
+
+for i=1, maxX do
+ write("-")
+end
+
+write("|")
+term.setCursorPos(maxX/2-#text/2, 2)
+write(text)
+term.setCursorPos(maxX, 2)
+write("|")
+
+for i=1, maxX do write("-") end
+print("")
+
+local Z = shell.getRunningProgram()
+local fileTable = fs.list("/")
+table.sort(fileTable)
+
+if term.isColour() then
+ term.setTextColour(colors.orange)
+end
+
+function checkArg(str)
+ for i,v in ipairs(tArgs) do
+  if str == v then return false end
+ end
+ return true
+end
+
+function drawBox(text, state)
+ if term.isColour() then
+  if state == true then
+   term.setTextColour(colors.orange)
+  elseif state == false then
+   term.setTextColour(colors.lime)
+  else
+   term.setTextColour(colors.blue)
+  end
+ end
+ 
+ local maxX, maxY = term.getSize()
+ 
+ 
+ for i=1, maxX do
+  write("-")
+ end
+ 
+ write("|")
+ local xPos, yPos = term.getCursorPos()
+ term.setCursorPos(maxX/2-#text/2, yPos)
+ write(text)
+ 
+ term.setCursorPos(maxX, yPos)
+ write("|")
+ 
+ for i=1, maxX do
+  write("-")
+ end
+end
+
+for i,v in ipairs(fileTable) do
+ os.queueEvent("") os.pullEvent()
+ if v ~= Z and not fs.isReadOnly(v) and checkArg(v)==true then
+  local text = "Deleting: "..v
+  drawBox(text, true)
+  fs.delete(v)
+ else
+  local text = "Skipping: "..v
+  drawBox(text, false)
+ end
+end
+
+drawBox("Press any key to continue")
+os.pullEvent("key")
+term.clear()
+term.setCursorPos(1,1)
